@@ -1,22 +1,9 @@
 [
   {
     "id": "excelToJson",
-    "title": "Excel to JSON Converter+",
-    "description": "このワークスペースの標準構成です。CDN の React を使い、readable-inline で単一HTML配布する Excel→JSON 変換アプリです。"
-  },
-  {
-    "id": "sampleVanillaChecklist",
-    "title": "Sample: Vanilla Checklist",
-    "description": "React を使わない場合の比較用サンプルです。用途が小さい時だけ選ぶ想定です。"
-  },
-  {
-    "id": "sampleReactChecklist",
-    "title": "Sample: React Checklist",
-    "description": "TailwindCSS をそのまま JSX に書く Vite + React の比較用サンプルです。画面追加を速く回したい時の基準です。"
-  },
-  {
-    "id": "sampleReactChecklistDesignSystem",
-    "title": "Sample: React Checklist Design System",
-    "description": "PandaCSS の token と recipe を使った Vite + React の比較用サンプルです。AI で似た UI を量産する時の基準です。"
+    "title": "Excel → JSON 変換ツール",
+    "description": "Excelの表データやCSVファイルを貼り付けるだけでJSON形式に変換できるツールです。",
+    "icon": "table_chart",
+    "color": "#107C41"
   }
 ]
