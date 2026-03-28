@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+:root {
+  color: #142013;
+  background: linear-gradient(180deg, #f4f7fb 0%, #edf1f8 100%);
+  font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+}
+
+body {
+  margin: 0;
+}

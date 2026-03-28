@@ -1,0 +1,34 @@
+@layer reset, base, tokens, recipes, utilities;
+
+.usage-popover {
+  inset: 0;
+  margin: auto;
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.usage-popover:popover-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@starting-style {
+  .usage-popover:popover-open {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+.usage-popover::backdrop {
+  background: rgba(0, 0, 0, 0);
+  transition: background 180ms ease;
+}
+
+.usage-popover:popover-open::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}

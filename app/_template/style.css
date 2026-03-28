@@ -1,0 +1,150 @@
+:root {
+  color: #172117;
+  background:
+    radial-gradient(circle at top left, rgba(155, 196, 120, 0.24), transparent 34%),
+    linear-gradient(180deg, #f5f7ef 0%, #e6ecdf 100%);
+  font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  --accent: #2f6b3a;
+  --accent-soft: #e5f0df;
+  --panel: rgba(255, 255, 255, 0.88);
+  --line: rgba(47, 107, 58, 0.18);
+  --muted: #5f6d5f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.page-shell {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 32px 20px 56px;
+}
+
+.hero-card,
+.panel-card {
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: var(--panel);
+  box-shadow: 0 24px 60px rgba(23, 33, 23, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.hero-card {
+  padding: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.hero-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.hero-row h1 {
+  margin: 0;
+  font-size: clamp(32px, 5vw, 48px);
+  line-height: 1.05;
+}
+
+.hero-copy {
+  max-width: 56ch;
+  margin: 14px 0 0;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.hero-badge {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.panel-card {
+  margin-top: 20px;
+  padding: 24px;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.field-row {
+  display: flex;
+}
+
+.text-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.guide-grid {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.guide-item {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.guide-step {
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.guide-text {
+  margin: 0;
+  line-height: 1.7;
+}
+
+@media (max-width: 720px) {
+  .page-shell {
+    padding-top: 20px;
+  }
+
+  .hero-row {
+    flex-direction: column;
+  }
+
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
+}
