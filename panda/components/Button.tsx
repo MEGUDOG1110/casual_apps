@@ -7,5 +7,10 @@ type ButtonVariants = NonNullable<RecipeVariantProps<typeof button>>;
 type ButtonProps = ButtonVariants & ComponentPropsWithoutRef<"button">;
 
 export function Button({ visual, size, className, ...rest }: ButtonProps) {
-  return <button className={`${button({ visual, size })}${className ? ` ${className}` : ""}`} {...rest} />;
+  return (
+    <button
+      className={`${button({ visual, size })}${className ? ` ${className}` : ""}`}
+      {...rest}
+    />
+  );
 }

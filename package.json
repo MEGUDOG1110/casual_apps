@@ -41,5 +41,10 @@
     "vite-plugin-singlefile": "^2.3.2",
     "vite-plus": "^0.1.14"
   },
+  "overrides": {
+    "@pandacss/node": {
+      "picomatch": "4.0.4"
+    }
+  },
   "packageManager": "npm@11.11.0"
 }

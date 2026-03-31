@@ -5,7 +5,7 @@ const EXCEL_GREEN = "#107C41";
 const REQUIRE_ALL_HEADER_COLUMNS = true;
 
 const USAGE_STEPS = [
-  "Excelのセル範囲をコピー、CSVファイルを「ファイル読込」で選択、または直接入力",
+  "Excelのセル範囲をコピー、CSV/TSVファイルを「CSV/TSV読込」で選択、または直接入力",
   "左側のテキストエリアに貼り付け（Ctrl+V）、またはファイルから自動入力",
   "区切り文字（タブ/カンマ）を切り替えて正しく認識されているか確認",
   "自動的にJSON形式（システム間でデータを受け渡すための書式）に変換されます",
@@ -56,7 +56,12 @@ const logoIconStyle = css({
   bg: EXCEL_GREEN,
 });
 
-const titleStyle = css({ fontSize: "lg", fontWeight: "semibold", color: "gray.900", _dark: { color: "gray.100" } });
+const titleStyle = css({
+  fontSize: "lg",
+  fontWeight: "semibold",
+  color: "gray.900",
+  _dark: { color: "gray.100" },
+});
 
 const subtitleStyle = css({
   mt: "0.5",
@@ -327,8 +332,7 @@ const dividerStyle = css({
 
 /* ---------- helpers ---------- */
 
-const normalizeLineBreaks = (text: string) =>
-  text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+const normalizeLineBreaks = (text: string) => text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 
 const createLineNumbers = (text: string) => {
   const n = normalizeLineBreaks(text);
@@ -338,9 +342,7 @@ const createLineNumbers = (text: string) => {
 
 const getCaretLineNumber = (text: string, caretIndex: number | null) => {
   const n = normalizeLineBreaks(text);
-  const safe = Number.isFinite(caretIndex)
-    ? Math.max(0, Math.min(caretIndex ?? 0, n.length))
-    : 0;
+  const safe = Number.isFinite(caretIndex) ? Math.max(0, Math.min(caretIndex ?? 0, n.length)) : 0;
   return n.slice(0, safe).split("\n").length;
 };
 
@@ -356,23 +358,48 @@ const parseTsvRows = (rawText: string, delimiter: string = "\t") => {
   let val = "";
   let inQ = false;
 
-  const pushVal = () => { row.push(val); val = ""; };
-  const pushRow = () => { pushVal(); rows.push(row); row = []; };
+  const pushVal = () => {
+    row.push(val);
+    val = "";
+  };
+  const pushRow = () => {
+    pushVal();
+    rows.push(row);
+    row = [];
+  };
 
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (inQ) {
       if (c === '"') {
-        if (text[i + 1] === '"') { val += '"'; i++; } else { inQ = false; }
-      } else { val += c; }
+        if (text[i + 1] === '"') {
+          val += '"';
+          i++;
+        } else {
+          inQ = false;
+        }
+      } else {
+        val += c;
+      }
       continue;
     }
     if (c === '"') {
-      if (val.trim() === "") { val = ""; inQ = true; } else { val += c; }
+      if (val.trim() === "") {
+        val = "";
+        inQ = true;
+      } else {
+        val += c;
+      }
       continue;
     }
-    if (c === delimiter) { pushVal(); continue; }
-    if (c === "\n") { pushRow(); continue; }
+    if (c === delimiter) {
+      pushVal();
+      continue;
+    }
+    if (c === "\n") {
+      pushRow();
+      continue;
+    }
     val += c;
   }
   if (inQ) return { rows: [] as string[][], error: "引用符が閉じられていません" };
@@ -386,7 +413,11 @@ const validateTable = (rows: string[][]) => {
     .filter((r) => r.some((v) => v.trim() !== ""));
 
   if (norm.length < 2)
-    return { headers: [] as string[], dataRows: [] as string[][], error: "最低2行(ヘッダー+データ)が必要です" };
+    return {
+      headers: [] as string[],
+      dataRows: [] as string[][],
+      error: "最低2行(ヘッダー+データ)が必要です",
+    };
 
   const headers = norm[0].map((h) => h.trim());
   if (headers.every((h) => h === ""))
@@ -396,23 +427,39 @@ const validateTable = (rows: string[][]) => {
 
   const dupes = headers.filter((h, i) => headers.indexOf(h) !== i);
   if (dupes.length > 0)
-    return { headers: [], dataRows: [] as string[][], error: `ヘッダー名が重複しています: ${[...new Set(dupes)].join(", ")}` };
+    return {
+      headers: [],
+      dataRows: [] as string[][],
+      error: `ヘッダー名が重複しています: ${[...new Set(dupes)].join(", ")}`,
+    };
 
   const data = norm.slice(1);
   const over = data.findIndex((r) => r.length > headers.length);
   if (over !== -1)
-    return { headers: [], dataRows: [] as string[][], error: `${over + 2}行目の列数がヘッダーより多いです` };
+    return {
+      headers: [],
+      dataRows: [] as string[][],
+      error: `${over + 2}行目の列数がヘッダーより多いです`,
+    };
 
   if (REQUIRE_ALL_HEADER_COLUMNS) {
     const under = data.findIndex((r) => r.length < headers.length);
     if (under !== -1)
-      return { headers: [], dataRows: [] as string[][], error: `${under + 2}行目で値が不足しています: ${headers.slice(data[under].length).join(", ")}` };
+      return {
+        headers: [],
+        dataRows: [] as string[][],
+        error: `${under + 2}行目で値が不足しています: ${headers.slice(data[under].length).join(", ")}`,
+      };
   }
 
   const emptyIdx = data.findIndex((r) => headers.some((_, ci) => (r[ci] ?? "").trim() === ""));
   if (emptyIdx !== -1) {
     const names = headers.filter((_, ci) => (data[emptyIdx][ci] ?? "").trim() === "");
-    return { headers: [], dataRows: [] as string[][], error: `${emptyIdx + 2}行目で値が空です: ${names.join(", ")}` };
+    return {
+      headers: [],
+      dataRows: [] as string[][],
+      error: `${emptyIdx + 2}行目で値が空です: ${names.join(", ")}`,
+    };
   }
 
   return { headers, dataRows: data, error: "" };
@@ -426,7 +473,10 @@ const parseExcelText = (rawText: string, delimiter: string = "\t") => {
     const v = validateTable(parsed.rows);
     if (v.error) return { rows: [], error: v.error };
     const rows = v.dataRows.map((r) =>
-      v.headers.reduce<Record<string, string>>((o, h, i) => { o[h] = (r[i] ?? "").trim(); return o; }, {}),
+      v.headers.reduce<Record<string, string>>((o, h, i) => {
+        o[h] = (r[i] ?? "").trim();
+        return o;
+      }, {}),
     );
     return { rows, error: "" };
   } catch {
@@ -464,7 +514,15 @@ type NoticeProps = {
   ariaLive?: "assertive" | "polite";
 };
 
-const NoticeRow = ({ icon, message, containerClass, iconClass, textClass, role, ariaLive }: NoticeProps) => {
+const NoticeRow = ({
+  icon,
+  message,
+  containerClass,
+  iconClass,
+  textClass,
+  role,
+  ariaLive,
+}: NoticeProps) => {
   if (!message) return null;
   return (
     <div className={cx(noticeRowStyle, containerClass)} role={role} aria-live={ariaLive}>
@@ -481,7 +539,11 @@ export const App = () => {
   const [formatType, setFormatType] = useState("compact");
   const [delimiter, setDelimiter] = useState<"\t" | ",">("\t");
   const [theme, setTheme] = useState<"light" | "dark" | "system">(() => {
-    try { return (localStorage.getItem("etj-theme") as "light" | "dark" | "system") ?? "system"; } catch { return "system"; }
+    try {
+      return (localStorage.getItem("etj-theme") as "light" | "dark" | "system") ?? "system";
+    } catch {
+      return "system";
+    }
   });
   const [activeArea, setActiveArea] = useState("input");
   const [inputActiveLine, setInputActiveLine] = useState(1);
@@ -509,14 +571,23 @@ export const App = () => {
   const cycleTheme = () => {
     setTheme((prev) => {
       const next = prev === "light" ? "dark" : prev === "dark" ? "system" : "light";
-      try { localStorage.setItem("etj-theme", next); } catch { /* noop */ }
+      try {
+        localStorage.setItem("etj-theme", next);
+      } catch {
+        /* noop */
+      }
       return next;
     });
   };
 
   // sync .dark class with resolved darkMode
   useEffect(() => {
-    const apply = () => document.documentElement.classList.toggle("dark", theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches));
+    const apply = () =>
+      document.documentElement.classList.toggle(
+        "dark",
+        theme === "dark" ||
+          (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches),
+      );
     apply();
     if (theme !== "system") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -534,8 +605,8 @@ export const App = () => {
     setCopyMessage("");
   };
 
-  const handleCaret = (setter: (n: number) => void, text: string) =>
-    (e: React.SyntheticEvent<HTMLTextAreaElement>) =>
+  const handleCaret =
+    (setter: (n: number) => void, text: string) => (e: React.SyntheticEvent<HTMLTextAreaElement>) =>
       setter(getCaretLineNumber(text, e.currentTarget.selectionStart));
 
   const handleOutputClick = () => {
@@ -580,7 +651,6 @@ export const App = () => {
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && hasOutput) {
       e.preventDefault();
       outputRef.current?.focus();
-
     }
   };
 
@@ -593,7 +663,10 @@ export const App = () => {
   ) => (
     <pre ref={ref} aria-hidden="true" className={lineGutterStyle}>
       {lines.map((n) => (
-        <div key={`${prefix}-${n}`} className={cx(css({ h: "6" }), n === activeLine && lineActiveStyle)}>
+        <div
+          key={`${prefix}-${n}`}
+          className={cx(css({ h: "6" }), n === activeLine && lineActiveStyle)}
+        >
           {n}
         </div>
       ))}
@@ -609,7 +682,12 @@ export const App = () => {
             <div className={headerFlexStyle}>
               <div className={logoBoxStyle}>
                 <div className={logoIconStyle}>
-                  <span className={cx("material-symbols-outlined", css({ fontSize: "3xl", color: "white" }))}>
+                  <span
+                    className={cx(
+                      "material-symbols-outlined",
+                      css({ fontSize: "3xl", color: "white" }),
+                    )}
+                  >
                     table_chart
                   </span>
                 </div>
@@ -632,7 +710,13 @@ export const App = () => {
                 <button
                   onClick={cycleTheme}
                   className={iconBtnStyle}
-                  title={theme === "light" ? "ダークモードに切替" : theme === "dark" ? "システム設定に切替" : "ライトモードに切替"}
+                  title={
+                    theme === "light"
+                      ? "ダークモードに切替"
+                      : theme === "dark"
+                        ? "システム設定に切替"
+                        : "ライトモードに切替"
+                  }
                   aria-label="テーマ切替"
                 >
                   <span className={cx("material-symbols-outlined", iconTextStyle)}>
@@ -653,7 +737,11 @@ export const App = () => {
               )}
             >
               {/* input section */}
-              <section className={inputSectionStyle} onClick={() => setActiveArea("input")} aria-labelledby="input-label">
+              <section
+                className={inputSectionStyle}
+                onClick={() => setActiveArea("input")}
+                aria-labelledby="input-label"
+              >
                 <div className={sectionHeaderStyle}>
                   <div className={css({ display: "flex", alignItems: "center", gap: "2" })}>
                     <div className={stepBadgeStyle}>1</div>
@@ -667,14 +755,30 @@ export const App = () => {
                     className={cx(clearBtnStyle, !inputText && copyBtnDisabledStyle)}
                     title="入力をクリア"
                   >
-                    <span className={cx("material-symbols-outlined", css({ fontSize: "sm", color: "inherit" }))}>close</span>
+                    <span
+                      className={cx(
+                        "material-symbols-outlined",
+                        css({ fontSize: "sm", color: "inherit" }),
+                      )}
+                    >
+                      close
+                    </span>
                     クリア
                   </button>
                 </div>
 
                 <div className={controlRowStyle}>
                   <div className={css({ display: "flex", alignItems: "center", gap: "1.5" })}>
-                    <span className={css({ fontSize: "xs", fontWeight: "medium", color: "gray.500", _dark: { color: "gray.400" } })}>区切り文字</span>
+                    <span
+                      className={css({
+                        fontSize: "xs",
+                        fontWeight: "medium",
+                        color: "gray.500",
+                        _dark: { color: "gray.400" },
+                      })}
+                    >
+                      区切り文字
+                    </span>
                     <div className={toggleGroupStyle}>
                       {(["\t", ","] as const).map((d) => (
                         <button
@@ -692,10 +796,17 @@ export const App = () => {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     className={clearBtnStyle}
-                    title="ファイルを読み込む"
+                    title="CSV/TSVファイルを読み込む"
                   >
-                    <span className={cx("material-symbols-outlined", css({ fontSize: "sm", color: "inherit" }))}>upload_file</span>
-                    ファイル読込
+                    <span
+                      className={cx(
+                        "material-symbols-outlined",
+                        css({ fontSize: "sm", color: "inherit" }),
+                      )}
+                    >
+                      upload_file
+                    </span>
+                    CSV/TSV読込
                   </button>
                   <input
                     ref={fileInputRef}
@@ -720,7 +831,11 @@ export const App = () => {
                     onSelect={handleCaret(setInputActiveLine, inputText)}
                     wrap="off"
                     aria-describedby="input-help input-error"
-                    placeholder={delimiter === "\t" ? "名前\t年齢\t部署\n田中\t30\t営業\n鈴木\t25\t開発" : "名前,年齢,部署\n田中,30,営業\n鈴木,25,開発"}
+                    placeholder={
+                      delimiter === "\t"
+                        ? "houmen\tkeyword\tfreeword\n01\t知床半島\t知床\n02\tねぶた祭\tねぶた祭\n03\t草津温泉\t草津温泉"
+                        : "houmen,keyword,freeword\n01,知床半島,知床\n02,ねぶた祭,ねぶた祭\n03,草津温泉,草津温泉"
+                    }
                     className={textareaStyle}
                   />
                 </div>
@@ -733,7 +848,9 @@ export const App = () => {
                   textClass={css({ color: "gray.500", _dark: { color: "gray.400" } })}
                 />
 
-                <div id="input-help" hidden>Excelからコピーした表データを貼り付ける入力欄です</div>
+                <div id="input-help" hidden>
+                  Excelからコピーした表データ、またはCSVとTSVのテキストファイルを読み込める入力欄です
+                </div>
                 <div id="input-error">
                   <NoticeRow
                     icon="error"
@@ -748,7 +865,11 @@ export const App = () => {
               </section>
 
               {/* output section */}
-              <section className={outputSectionStyle} onClick={() => setActiveArea("output")} aria-labelledby="output-label">
+              <section
+                className={outputSectionStyle}
+                onClick={() => setActiveArea("output")}
+                aria-labelledby="output-label"
+              >
                 <div className={sectionHeaderStyle}>
                   <div className={css({ display: "flex", alignItems: "center", gap: "2" })}>
                     <div className={stepBadgeStyle}>2</div>
@@ -763,14 +884,30 @@ export const App = () => {
                     className={cx(copyBtnStyle, !hasOutput && copyBtnDisabledStyle)}
                     title="JSONをコピー"
                   >
-                    <span className={cx("material-symbols-outlined", css({ fontSize: "sm", color: "inherit" }))}>content_copy</span>
+                    <span
+                      className={cx(
+                        "material-symbols-outlined",
+                        css({ fontSize: "sm", color: "inherit" }),
+                      )}
+                    >
+                      content_copy
+                    </span>
                     コピー
                   </button>
                 </div>
 
                 <div className={controlRowStyle}>
                   <div className={css({ display: "flex", alignItems: "center", gap: "1.5" })}>
-                    <span className={css({ fontSize: "xs", fontWeight: "medium", color: "gray.500", _dark: { color: "gray.400" } })}>出力形式</span>
+                    <span
+                      className={css({
+                        fontSize: "xs",
+                        fontWeight: "medium",
+                        color: "gray.500",
+                        _dark: { color: "gray.400" },
+                      })}
+                    >
+                      出力形式
+                    </span>
                     <div className={toggleGroupStyle}>
                       {(["compact", "pretty"] as const).map((fmt) => (
                         <button
@@ -810,15 +947,21 @@ export const App = () => {
                   containerClass={css({ bg: "gray.50", _dark: { bg: "rgba(255,255,255,0.05)" } })}
                   iconClass={css({
                     color: copyMessage === "JSONをコピーしました" ? EXCEL_GREEN : "gray.400",
-                    _dark: { color: copyMessage === "JSONをコピーしました" ? EXCEL_GREEN : "gray.500" },
+                    _dark: {
+                      color: copyMessage === "JSONをコピーしました" ? EXCEL_GREEN : "gray.500",
+                    },
                   })}
                   textClass={css({ color: "gray.500", _dark: { color: "gray.400" } })}
                   role="status"
                   ariaLive="polite"
                 />
 
-                <div id="output-help" hidden>変換されたJSONの出力欄です</div>
-                <div id="copy-status" hidden>コピー結果が通知されます</div>
+                <div id="output-help" hidden>
+                  変換されたJSONの出力欄です
+                </div>
+                <div id="copy-status" hidden>
+                  コピー結果が通知されます
+                </div>
               </section>
             </div>
           </div>
@@ -834,9 +977,28 @@ export const App = () => {
         aria-label="使い方"
         className={cx("usage-popover", popoverStyle)}
       >
-        <div className={css({ mb: "4", display: "flex", alignItems: "center", justifyContent: "space-between" })}>
-          <h2 className={css({ display: "flex", alignItems: "center", gap: "2", fontSize: "md", fontWeight: "semibold", color: "gray.900", _dark: { color: "gray.100" } })}>
-            <span className={cx("material-symbols-outlined", css({ color: EXCEL_GREEN }))}>help</span>
+        <div
+          className={css({
+            mb: "4",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          })}
+        >
+          <h2
+            className={css({
+              display: "flex",
+              alignItems: "center",
+              gap: "2",
+              fontSize: "md",
+              fontWeight: "semibold",
+              color: "gray.900",
+              _dark: { color: "gray.100" },
+            })}
+          >
+            <span className={cx("material-symbols-outlined", css({ color: EXCEL_GREEN }))}>
+              help
+            </span>
             使い方
           </h2>
           <button
@@ -859,7 +1021,6 @@ export const App = () => {
           ))}
         </div>
       </div>
-
     </div>
   );
 };

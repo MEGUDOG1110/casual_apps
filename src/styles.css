@@ -21,7 +21,7 @@
   --md3-info: #b5c7d3;
   --md3-info-bg: #23272b;
   --md3-link: #80e27e;
-  --md3-shadow: 0_1px_3px_1px_rgba(0,0,0,0.30),0_1px_2px_0_rgba(0,0,0,0.40);
+  --md3-shadow: 0_1px_3px_1px_rgba (0, 0, 0, 0.3), 0_1px_2px_0_rgba (0, 0, 0, 0.4);
   color: var(--md3-on-surface);
   background: var(--md3-bg);
   font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
